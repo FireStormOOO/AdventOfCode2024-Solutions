@@ -27,9 +27,7 @@ int Calculate(string input, bool part1=true)
     {
         var next = Add(guard, dir[dirIndex % 4]);
         if (obstacles.Contains(next))
-        {
             dirIndex++;
-        }
         else
         {
             visited.Add(guard);
@@ -39,6 +37,7 @@ int Calculate(string input, bool part1=true)
 
     if(part1)
         return visited.Distinct().Count();
+    
     int loopTally = 0;
     foreach(var tempObstacle in visited.Distinct())
     {
@@ -47,14 +46,14 @@ int Calculate(string input, bool part1=true)
         if(guard == tempObstacle || obstacles.Contains(tempObstacle))
             continue;
 
-        List<(int, int, int)> obstacleHit = new();
+        List<((int, int), int)> obstacleHit = new();
         obstacles.Add(tempObstacle);
         while (BoundsCheck(guard))
         {
             var next = Add(guard, dir[dirIndex % 4]);
             if (obstacles.Contains(next))
             {
-                var hit = (guard.Item1, guard.Item2, dirIndex % 4);
+                var hit = (guard, dirIndex % 4);
                 if (obstacleHit.Contains(hit)) //Loop!
                 {
                     loopTally++;
