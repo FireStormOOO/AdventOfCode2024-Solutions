@@ -40,11 +40,10 @@ int Calculate(string input, bool part1=true)
     if(part1)
         return visited.Distinct().Count();
     int loopTally = 0;
-    for (int i = 0; i < input.Length; i++)
+    foreach(var tempObstacle in visited.Distinct())
     {
         guard = ToCoord(input.IndexOf('^'));
         dirIndex = 0;
-        var tempObstacle = ToCoord(i);
         if(guard == tempObstacle || obstacles.Contains(tempObstacle))
             continue;
 
