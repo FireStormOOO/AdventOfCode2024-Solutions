@@ -3,8 +3,15 @@ using Day8;
 
 
 (int, int) ToCoordByWidth(int index, int width) => (index % (width + 1), index / (width + 1));
-(int, int) Add((int, int) A, (int, int) B) => (A.Item1 + B.Item1, A.Item2 + B.Item2);
-(int, int) Sub((int, int) A, (int, int) B) => (A.Item1 - B.Item1, A.Item2 - B.Item2);
+(int, int) Add((int, int) a, (int, int) b) => (a.Item1 + b.Item1, a.Item2 + b.Item2);
+(int, int) Sub((int, int) a, (int, int) b) => (a.Item1 - b.Item1, a.Item2 - b.Item2);
+(int, int) ScalarMult(int a, (int, int) b) => (a * b.Item1, a * b.Item2);
+
+int Gcd(int a, int b)
+{
+    if (b == 0) return a;
+    return Gcd(b, a % b);
+}
 
 int Calculate(string input, bool part1=true)
 {
@@ -26,9 +33,24 @@ int Calculate(string input, bool part1=true)
         for (int i = 0; i < towers.Count; i++)
             for (int j = i + 1; j < towers.Count; j++)
             {
-                var diff = Sub(towers[i], towers[j]);
-                antinodes.Add(Add(towers[i], diff));
-                antinodes.Add(Sub(towers[j], diff));
+                if (part1)
+                {
+                    var diff = Sub(towers[i], towers[j]);
+                    antinodes.Add(Add(towers[i], diff));
+                    antinodes.Add(Sub(towers[j], diff));
+                }
+                else
+                {
+                    var tempDiff = Sub(towers[i], towers[j]);
+                    var gcd = Gcd(Math.Abs(tempDiff.Item1), Math.Abs(tempDiff.Item2));
+                    var diff = (tempDiff.Item1 / gcd, tempDiff.Item2 / gcd);
+                    var steps = Math.Max(width, height);
+                    for (int k = 0; k < steps; k++)
+                    {
+                        antinodes.Add(Add(towers[i], ScalarMult(k, diff)));
+                        antinodes.Add(Add(towers[i], ScalarMult(-k, diff)));
+                    }
+                }
             }
     }
 
@@ -39,7 +61,13 @@ int Calculate(string input, bool part1=true)
 Debug.Assert(14 == Calculate("............\n........0...\n.....0......\n.......0....\n....0.......\n......A.....\n............\n............\n........A...\n.........A..\n............\n............"));
 Console.WriteLine($"There are {Calculate(PuzzleInput.Input)} distinct antinodes in bounds");
 
-//Debug.Assert(11387 == Calculate("............\n........0...\n.....0......\n.......0....\n....0.......\n......A.....\n............\n............\n........A...\n.........A..\n............\n............",false));
-//Console.WriteLine($"Corrected calibration sum is  {Calculate(PuzzleInput.Input,false)}");
+Debug.Assert(Gcd(24,6) == 6);
+Debug.Assert(Gcd(24,9) == 3);
+Debug.Assert(Gcd(9,24) == 3);
+Debug.Assert(Gcd(48,18) == 6);
+Debug.Assert(Gcd(7,13) == 1);
+
+Debug.Assert(34 == Calculate("............\n........0...\n.....0......\n.......0....\n....0.......\n......A.....\n............\n............\n........A...\n.........A..\n............\n............",false));
+Console.WriteLine($"There are {Calculate(PuzzleInput.Input,false)} distinct antinodes in bounds");
 
 Console.WriteLine($"Done!");
