@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Text.RegularExpressions;
+using Common;
 using Day7;
 
 long Add(long a, long b) => a + b;
@@ -10,23 +10,17 @@ long Calculate(string input, bool part1=true)
     var ops = new List<Func<long,long,long>>{Add, Mul};
     if(!part1)
         ops.Add(Concat);
-    var matches = Regex.Matches(input, @"^(\d+): (\d+ ?){2,}$", RegexOptions.Multiline);
+    var lines = new NumArgsByLine<long>(input).Lines;
     var tally = 0L;
-    foreach (Match match in matches)
+    foreach (var line in lines)
     {
-        var argMatch = Regex.Matches(match.Value, @"(\d+)");
-        var res = long.Parse(argMatch[0].Value);
-        var args = new List<long>();
-        for(int i = 1; i < argMatch.Count; i++) args.Add(long.Parse(argMatch[i].Value));
-        
-        
-        for (int i = 0; i < Math.Pow(ops.Count, args.Count - 1); i++)
+        for (int i = 0; i < Math.Pow(ops.Count, line.Count - 2); i++)
         {
             Func<long, long, long> GetOp(int iOp) => ops[(int)(i / Math.Pow(ops.Count, iOp)) % ops.Count];
-            long running = GetOp(0)(args[0], args[1]);
-            for (int iOp = 1; iOp < args.Count -1; iOp++) 
-                running = GetOp(iOp)(running, args[iOp + 1]);
-            if (res==running)
+            long running = GetOp(0)(line[1], line[2]);
+            for (int iOp = 1; iOp < line.Count -2; iOp++) 
+                running = GetOp(iOp)(running, line[iOp + 2]);
+            if (line[0]==running)
             {
                 tally += running;
                 break;
