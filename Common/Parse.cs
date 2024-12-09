@@ -11,6 +11,8 @@ public class CharGrid
     public char[][] Grid { get; }
     public int Width { get; }
     public int Height { get; }
+    public bool BoundsCheck((int X, int Y) coord) => coord is { X: >= 0, Y: >= 0} && coord.X < Width && coord.Y < Height;
+    //public Func<(int X, int Y),bool> BoundsCheck =>
     
     public CharGrid(string input)
     {
@@ -18,6 +20,8 @@ public class CharGrid
         Width = input.IndexOf('\n');
         Height = input.Count(c => c == '\n') + 1;
     }
+
+    public char[] this[int x] => Grid[x];
 }
 
 public class NumArgsByLine<T> where T : INumber<T>,IParsable<T>
