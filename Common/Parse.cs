@@ -24,6 +24,26 @@ public class CharGrid
     public char[] this[int x] => Grid[x];
 }
 
+public class IntGrid
+{
+    public int[][] Grid { get; }
+    public int Width { get; }
+    public int Height { get; }
+    public bool BoundsCheck((int X, int Y) coord) => coord is { X: >= 0, Y: >= 0} && coord.X < Width && coord.Y < Height;
+    //public Func<(int X, int Y),bool> BoundsCheck =>
+    
+    public IntGrid(string input)
+    {
+        var charGrid = new CharGrid(input);
+        Width = charGrid.Width;
+        Height = charGrid.Height;
+        Grid = charGrid.Grid.Select(row => row.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
+    }
+
+    public int Index((int X, int Y) index) => Grid[index.X][index.Y];
+    public int[] this[int x] => Grid[x];
+}
+
 public class NumArgsByLine<T> where T : INumber<T>,IParsable<T>
 {
     public readonly List<List<T>> Lines;
