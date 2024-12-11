@@ -5,7 +5,41 @@ using Day11;
 long Calculate(string input, int blinks = 25)
 {
     var stones = new NumArgsByLine<long>(input).Lines[0];
+    Dictionary<long, long> stoneCounts = new Dictionary<long, long>();
+    stones.Distinct().Select(stone => (stone, (long)stones.Count(s => s == stone)))
+        .ToList().ForEach(stonePair=> stoneCounts[stonePair.stone]=stonePair.Item2);
+    
+    Dictionary<long, List<(long stone, long count)>> resultCache = new();
+    while (blinks > 0)
+    {
+        var cappedBlinks = int.Min(blinks, 5);
+        Dictionary<long, long> stoneCountsNext = new Dictionary<long, long>();
+        foreach (var stone in stoneCounts.Keys)
+        {
+            List<(long stone, long count)> stepResult;
+            if (resultCache.TryGetValue(stone, out var cachedResult))
+                stepResult = cachedResult;
+            else
+            {
+                stepResult = CalculateInner([stone], cappedBlinks);
+                resultCache[stone] = stepResult;
+            }
 
+            foreach (var stoneRes in stepResult)
+            {
+                stoneCountsNext.TryAdd(stoneRes.stone, 0);
+                stoneCountsNext[stoneRes.stone] += stoneCounts[stone] * stoneRes.count;
+            }
+        }
+
+        stoneCounts = stoneCountsNext;
+        blinks -= cappedBlinks;
+    }
+
+    return stoneCounts.Values.Sum();
+}
+List<(long stone, long count)> CalculateInner(List<long> stones, int blinks)
+{
     for (int blink = 0; blink < blinks; blink++)
     {
         var toAppend = new List<long>();
@@ -31,8 +65,7 @@ long Calculate(string input, int blinks = 25)
             throw new ArgumentOutOfRangeException();
     }
 
-    return stones.Count;
-
+    return stones.Distinct().Select(stone => (stone, (long)stones.Count(s => s == stone))).ToList();
 }
 
 string testInput = "125 17";
