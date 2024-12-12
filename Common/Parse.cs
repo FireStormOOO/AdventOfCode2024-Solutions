@@ -21,6 +21,7 @@ public class CharGrid
         Height = input.Count(c => c == '\n') + 1;
     }
 
+    public char Index((int X, int Y) index) => Grid[index.X][index.Y];
     public char[] this[int x] => Grid[x];
 }
 
