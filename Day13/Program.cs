@@ -2,24 +2,24 @@
 using System.Text.RegularExpressions;
 using Common;
 using Day13;
-using static Common.TupleMath<int>;
+using static Common.TupleMath<long>;
 
+(long,long) part2Offset = (10000000000000, 10000000000000);
 long Calculate(string input, bool part1=true)
 {
     var matches = Regex.Matches(input, @"(?:Button A: X([+-]\d+), Y([+-]\d+))\n(?:Button B: X([+-]\d+), Y([+-]\d+))\n(?:Prize: X=(\d+), Y=(\d+))", RegexOptions.Multiline);
-    var games = matches.Select(match => match.Groups.Values.Take(1..7).Select(cap => int.Parse(cap.Value)).ToList())
+    var games = matches.Select(match => match.Groups.Values.Take(1..7).Select(cap => long.Parse(cap.Value)).ToList())
         .Select(arg => new Game((arg[0], arg[1]), (arg[2], arg[3]), (arg[4], arg[5]))).ToList();
 
-    int cost = 0, prizes = 0;
+    long cost = 0, prizes = 0;
     foreach (var game in games)
     {
         var A = game.A;
         var B = game.B;
-        var prize = game.Prize;
-        if (A.X * B.Y == A.Y * B.X)
-            throw new NotImplementedException("Assumed A and B are not colinear");
-        int aCount = (prize.X * B.Y - prize.Y * B.X) / (A.X * B.Y - A.Y * B.X);
-        int bCount = (prize.X * A.Y - prize.Y * A.X) / (B.X * A.Y - B.Y * A.X);
+        var prize = part1 ? game.Prize : Add(game.Prize, part2Offset);
+        Debug.Assert(A.X * B.Y != A.Y * B.X, "Assumed A and B are not collinear");
+        long aCount = (prize.X * B.Y - prize.Y * B.X) / (A.X * B.Y - A.Y * B.X);
+        long bCount = (prize.X * A.Y - prize.Y * A.X) / (B.X * A.Y - B.Y * A.X);
         if (Add(ScalarMult(aCount, A), ScalarMult(bCount, B)) == prize)
         {
             prizes++;
@@ -35,9 +35,8 @@ string testInput = "Button A: X+94, Y+34\nButton B: X+22, Y+67\nPrize: X=8400, Y
 Debug.Assert(480 == Calculate(testInput));
 Console.WriteLine($"All possible prizes need {Calculate(PuzzleInput.Input)} tokens to collect.");
 
-//Debug.Assert(80==Calculate(testInput, false));
-//Console.WriteLine($"{Calculate(PuzzleInput.Input,false)}");
+Console.WriteLine($"All possible prizes need {Calculate(PuzzleInput.Input, false)} tokens to collect.");
 
 Console.WriteLine($"Done!");
 
-record Game((int X, int Y) A, (int X, int Y) B, (int X, int Y) Prize);
+record Game((long X, long Y) A, (long X, long Y) B, (long X, long Y) Prize);
