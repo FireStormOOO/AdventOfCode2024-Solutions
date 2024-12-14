@@ -55,3 +55,12 @@ Debug.Assert(227 == Calculate(testInput2,false));
 Console.WriteLine($"Sum of corrected trailhead scores is {Calculate(PuzzleInput.Input,false)}");
 
 Console.WriteLine($"Done!");
+
+Console.WriteLine("Upping the Ante 1:");
+{
+    var uta = PuzzleInput.UpTheAnte1;
+    uta.Start();
+    Debug.Assert(uta.Check(Calculate(uta.Input, false)));
+    Debug.Assert(uta.Finish());
+}
+Console.WriteLine("Upping the Ante 1: SUCCESS");
