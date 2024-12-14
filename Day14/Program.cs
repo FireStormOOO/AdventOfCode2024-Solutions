@@ -3,12 +3,11 @@ using Common;
 using Day14;
 using static Common.TupleMath<int>;
 
-long Calculate(string input, (int width, int height) dims, bool part1=true)
+long Calculate(string input, (int width, int height) dims, int steps = 100, bool draw=false)
 {
     List<((int X, int Y) R, (int X, int Y) V)> robots = new NumArgsByLine<int>(input).Lines
         .Select(argList=>((argList[0],argList[1]),(argList[2],argList[3]))).ToList();
 
-    int steps = 100;
     List<(int X, int Y)> robotsFinal = robots
         .Select(robot => Add(robot.R, ScalarMult(steps, Add(robot.V, dims))))
         .Select(robot => (robot.X % dims.width, robot.Y % dims.height)).ToList();
@@ -23,6 +22,32 @@ string testInput = "p=0,4 v=3,-3\np=6,3 v=-1,-3\np=10,3 v=-1,2\np=2,0 v=2,-1\np=
 Debug.Assert(12 == Calculate(testInput, (11,7)));
 Console.WriteLine($"Robot safety factor is {Calculate(PuzzleInput.Input, (101,103))} after 100 steps.");
 
-//Console.WriteLine($"{Calculate(PuzzleInput.Input, false)}");
+Console.ReadKey();
+List<((int X, int Y) R, (int X, int Y) V)> robots = new NumArgsByLine<int>(PuzzleInput.Input).Lines
+    .Select(argList=>((argList[0],argList[1]),(argList[2],argList[3]))).ToList();
+(int width, int height) dims = (101, 103);
+for (int step = 0;; step++)
+{
+    List<(int X, int Y)> robotsStep = robots
+        .Select(robot => Add(robot.R, ScalarMult(step, Add(robot.V, dims))))
+        .Select(robot => (robot.X % dims.width, robot.Y % dims.height)).ToList();
+    
+    
+    //if(robotsStep.Distinct().Count() != 500) continue;
+    var largestColumn = robotsStep.Select(robot => robot.Y).Distinct()
+        .Select(y => robotsStep.Count(robot => robot.Y == y)).Max();
+    var largestRow = robotsStep.Select(robot => robot.X).Distinct()
+        .Select(x => robotsStep.Count(robot => robot.X == x)).Max();
+    if (largestColumn < 25 || largestRow < 25) continue;
+    
+    Console.Clear();
+    Console.WriteLine($"Step {step}:");
+    for (int i = 0; i < dims.width; i++)
+    {
+        for (int j = 0; j < dims.height; j++) 
+            Console.Write(robotsStep.Count(robot=>robot.X == i && robot.Y == j) > 0 ? 'X' : '_');
+        Console.WriteLine();
+    }
 
-Console.WriteLine($"Done!");
+    Console.ReadLine();
+}
