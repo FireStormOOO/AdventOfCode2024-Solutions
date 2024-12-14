@@ -52,7 +52,7 @@ public class NumArgsByLine<T> where T : INumber<T>,IParsable<T>
     {
         Lines = input.Split('\n')
             .Select(s => 
-                Regex.Matches(s, @"(\d+)")
+                Regex.Matches(s, @"([+-]?\d+(?:\.\d+)?)")
                     .Select(match => 
                         T.Parse(match.Value, NumberFormatInfo.InvariantInfo)).ToList()).ToList();
     }
