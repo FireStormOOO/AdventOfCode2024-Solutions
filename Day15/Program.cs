@@ -38,12 +38,59 @@ long Calculate(string input, bool part1=true)
 
     foreach (var move in moves)
     {
-        var endPos = Add(move, roboPos);
-        if (CanPush(move, endPos, '@'))
+        if (part1)
         {
-            map.Index(roboPos, '.');
-            map.Index(endPos, '@');
-            roboPos = endPos;
+            var endPos = Add(move, roboPos);
+            if (CanPush(move, endPos, '@'))
+            {
+                map.Index(roboPos, '.');
+                map.Index(endPos, '@');
+                roboPos = endPos;
+            }
+        }
+        else
+        {
+            List<((int X, int Y) pushFrom, char tile)> toPush = [(roboPos, '@')];
+            List<(int X, int Y)> toCheck = [Add(roboPos, move)];
+            var vertical = move.Y != 0;
+            var canPush = true;
+            while (toCheck.Count > 0 && canPush)
+            {
+                var checking = toCheck[0];
+                toCheck.RemoveAt(0);
+                var here = map.Index(checking);
+                switch (here)
+                {
+                    case '#':
+                        canPush = false;
+                        break;
+                    case '[':                    
+                    case ']':
+                        if (vertical)
+                        {
+                            var twin = Add(checking, here == '[' ?  (1, 0) : (-1, 0));
+                            if (toPush.Select(t=>t.pushFrom).Union(toCheck).All(xy=>xy!=twin)) 
+                                toCheck.Add(twin);
+                        }
+                        toCheck.Add(Add(checking, move));
+                        toPush.Add((checking, here));
+                        break;
+                    case '.':
+                        break;
+                    case '@':
+                        throw new InvalidOperationException("Should only be one robot!");
+                    default:
+                        throw new InvalidOperationException("Unknown piece");
+                }
+                Debug.Assert(toPush.Count < 100 && toCheck.Count < 100);
+            }
+
+            if (canPush)
+            {
+                foreach (var update in toPush) map.Index(update.pushFrom, '.');
+                foreach (var update in toPush) map.Index(Add(move, update.pushFrom), update.tile);
+                roboPos = Add(roboPos, move);
+            }
         }
     }
 
@@ -51,6 +98,7 @@ long Calculate(string input, bool part1=true)
     for (int i = 0; i < map.Width; i++) for (int j = 0; j < map.Height; j++)
     {
         if (map.Grid[j][i] == 'O') tally += 100 * j + i;
+        if (map.Grid[j][i] == '[') tally += 100 * j + i;
     }
 
     return tally;
@@ -63,7 +111,8 @@ Debug.Assert(10092 == Calculate(testInput2));
 
 Console.WriteLine($"Final position of the boxes sums to {Calculate(PuzzleInput.Input)}");
 
-//string ExpandInput(string input) => input.Replace("#", "##").Replace("O", "[]").Replace(".", "..").Replace("@", "@.");
-//Console.WriteLine($"Final position of the boxes sums to {Calculate(ExpandInput(PuzzleInput.Input), false)}");
+string ExpandInput(string input) => input.Replace("#", "##").Replace("O", "[]").Replace(".", "..").Replace("@", "@.");
+Debug.Assert(9021==Calculate(ExpandInput(testInput2), false));
+Console.WriteLine($"Final position of the boxes sums to {Calculate(ExpandInput(PuzzleInput.Input), false)}");
 
 Console.WriteLine($"Done!");
