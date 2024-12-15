@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using System.Numerics;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Common;
@@ -12,7 +13,6 @@ public class CharGrid
     public int Width { get; }
     public int Height { get; }
     public bool BoundsCheck((int X, int Y) coord) => coord is { X: >= 0, Y: >= 0} && coord.X < Width && coord.Y < Height;
-    //public Func<(int X, int Y),bool> BoundsCheck =>
     
     public CharGrid(string input)
     {
@@ -21,14 +21,26 @@ public class CharGrid
         Height = input.Count(c => c == '\n') + 1;
     }
 
-    public char Index((int X, int Y) index) => Grid[index.X][index.Y];
-    public char[] this[int x] => Grid[x];
     public char Index((int X, int Y) index) => Grid[index.Y][index.X];
     /// <summary>
     /// Returns a single line/row of the grid.  Note that this means the indexes are reversed, (line,column) or (Y,X)
     /// </summary>
     /// <param name="row"></param>
     public char[] this[int row] => Grid[row];
+
+    public void Index((int X, int Y) index, char toSet) => Grid[index.Y][index.X] = toSet;
+
+    public string Print()
+    {
+        var sb = new StringBuilder();
+        foreach (var row in Grid)
+        {
+            foreach (var c in row) sb.Append(c);
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
+    }
 }
 
 public class IntGrid
@@ -37,7 +49,6 @@ public class IntGrid
     public int Width { get; }
     public int Height { get; }
     public bool BoundsCheck((int X, int Y) coord) => coord is { X: >= 0, Y: >= 0} && coord.X < Width && coord.Y < Height;
-    //public Func<(int X, int Y),bool> BoundsCheck =>
     
     public IntGrid(string input)
     {
