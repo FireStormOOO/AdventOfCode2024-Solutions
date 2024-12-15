@@ -14,7 +14,7 @@ int Calculate(string input, bool part1=true)
     {
         for (int j = 0; j < grid.Height; j++)
         {
-            var c = grid[i][j];
+            var c = grid[j][i];
             if (frequencies.Contains(c)) towersByW[c].Add((i,j));
         }
     }

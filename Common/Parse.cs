@@ -23,6 +23,12 @@ public class CharGrid
 
     public char Index((int X, int Y) index) => Grid[index.X][index.Y];
     public char[] this[int x] => Grid[x];
+    public char Index((int X, int Y) index) => Grid[index.Y][index.X];
+    /// <summary>
+    /// Returns a single line/row of the grid.  Note that this means the indexes are reversed, (line,column) or (Y,X)
+    /// </summary>
+    /// <param name="row"></param>
+    public char[] this[int row] => Grid[row];
 }
 
 public class IntGrid
