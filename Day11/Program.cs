@@ -1,22 +1,23 @@
 ﻿using System.Diagnostics;
+using System.Numerics;
 using Common;
 using Day11;
 
-long Calculate(string input, int blinks = 25)
+BigInteger Calculate(string input, int blinks = 25)
 {
-    var stones = new NumArgsByLine<long>(input).Lines[0];
-    Dictionary<long, long> stoneCounts = new Dictionary<long, long>();
-    stones.Distinct().Select(stone => (stone, (long)stones.Count(s => s == stone)))
+    var stones = new NumArgsByLine<BigInteger>(input).Lines[0];
+    Dictionary<BigInteger, BigInteger> stoneCounts = new Dictionary<BigInteger, BigInteger>();
+    stones.Distinct().Select(stone => (stone, (BigInteger)stones.Count(s => s == stone)))
         .ToList().ForEach(stonePair=> stoneCounts[stonePair.stone]=stonePair.Item2);
     
-    Dictionary<long, List<(long stone, long count)>> resultCache = new();
+    Dictionary<BigInteger, List<(BigInteger stone, BigInteger count)>> resultCache = new();
     while (blinks > 0)
     {
         var cappedBlinks = int.Min(blinks, 5);
-        Dictionary<long, long> stoneCountsNext = new Dictionary<long, long>();
+        Dictionary<BigInteger, BigInteger> stoneCountsNext = new Dictionary<BigInteger, BigInteger>();
         foreach (var stone in stoneCounts.Keys)
         {
-            List<(long stone, long count)> stepResult;
+            List<(BigInteger stone, BigInteger count)> stepResult;
             if (resultCache.TryGetValue(stone, out var cachedResult))
                 stepResult = cachedResult;
             else
@@ -36,21 +37,21 @@ long Calculate(string input, int blinks = 25)
         blinks -= cappedBlinks;
     }
 
-    return stoneCounts.Values.Sum();
+    return stoneCounts.Values.Aggregate((a, b) => a+b);
 }
-List<(long stone, long count)> CalculateInner(List<long> stones, int blinks)
+List<(BigInteger stone, BigInteger count)> CalculateInner(List<BigInteger> stones, int blinks)
 {
     for (int blink = 0; blink < blinks; blink++)
     {
-        var toAppend = new List<long>();
+        var toAppend = new List<BigInteger>();
         for (int iStone = 0; iStone < stones.Count; iStone++)
         {
-            var digits = (int)Math.Log10(stones[iStone]) + 1;
+            var digits = (int)BigInteger.Log10(stones[iStone]) + 1;
             if (stones[iStone] == 0)
                 stones[iStone] = 1;
             else if (digits % 2 == 0)
             {
-                var split = (int)Math.Pow(10, (digits >> 1));
+                var split = BigInteger.Pow(10, digits >> 1);
                 var left = stones[iStone] / split;
                 var right = stones[iStone] % split;
                 stones[iStone] = left;
@@ -65,7 +66,7 @@ List<(long stone, long count)> CalculateInner(List<long> stones, int blinks)
             throw new ArgumentOutOfRangeException();
     }
 
-    return stones.Distinct().Select(stone => (stone, (long)stones.Count(s => s == stone))).ToList();
+    return stones.Distinct().Select(stone => (stone, (BigInteger)stones.Count(s => s == stone))).ToList();
 }
 
 string testInput = "125 17";
@@ -75,3 +76,8 @@ Console.WriteLine($"There are {Calculate(PuzzleInput.Input)} stones after 25 bli
 Console.WriteLine($"There are {Calculate(PuzzleInput.Input,75)} stones after 75 blinks");
 
 Console.WriteLine($"Done!");
+
+Console.WriteLine("Upping the Ante:");
+Console.WriteLine($"There are {Calculate(PuzzleInput.Input,1000)} stones after 1000 blinks");
+Console.WriteLine($"There are {Calculate(PuzzleInput.Input,10000)} stones after 10000 blinks");
+Console.WriteLine($"There are {Calculate(PuzzleInput.Input,100000)} stones after 100000 blinks");
