@@ -5,95 +5,113 @@ using static Common.TupleMath<int>;
 
 
 
-long Calculate(string input, bool part1=true)
+long Calculate(string input, out int pathTileCount)
 {
     var map = new CharGrid(input);
     var startPos = map.FindFirst('S');
     var endPos = map.FindFirst('E');
-    Dictionary<Directions, (int X, int Y)> offsets = new() { 
-        { Directions.East, (1, 0) }, { Directions.North, (0, -1)},
-        { Directions.West, (-1, 0)}, { Directions.South, (0, 1)}};
-    long Hint((Directions Facing, (int X, int Y) Pos, long cost, bool justTurned, long hint) action)
+
+    long Hint(SearchEntry action)
     {
         var delta = Sub(endPos, action.Pos);
         var hint = 0L;
+        var turnPenalty = 1000L;
         if (delta.X > 0 && action.Facing != Directions.West)
-            hint += 1000L;
+            hint += turnPenalty;
         if (delta.X < 0 && action.Facing != Directions.East)
-            hint += 1000L;
+            hint += turnPenalty;
         if (delta.Y > 0 && action.Facing != Directions.South)
-            hint += 1000L;
+            hint += turnPenalty;
         if (delta.Y < 0 && action.Facing != Directions.North)
-            hint += 1000L;
+            hint += turnPenalty;
         return hint + Math.Abs(delta.X) * Math.Abs(delta.Y);
     }
 
-    (Directions Facing, (int X, int Y) Pos, long cost, bool justTurned, long hint) candidate = (Directions.East, startPos, 0, false, 0);
-    candidate.hint = Hint(candidate);
-    List<(Directions Facing, (int X, int Y) Pos, long cost, bool justTurned, long hint)> candidates = [candidate];
-    List<(Directions Facing, (int X, int Y) Pos)> visited = [];
+    SearchEntry candidate = new(Directions.East, startPos, 0, false, Hint, null);
+    candidate.Hint = Hint(candidate);
+    List<SearchEntry> candidates = [candidate];
+    Dictionary<(Directions Facing, (int X, int Y) Pos), List<SearchEntry>> visited = [];
+    List<SearchEntry> solutions = new();
+    var solutionCost = long.MaxValue;
     while (candidates.Count > 0)
     {
-        candidates = candidates.Distinct().OrderBy(t => t.cost + t.hint).ToList();
+        candidates = candidates.Where(c=>c.Cost < solutionCost).Distinct().OrderBy(t => t.Cost + t.Hint).ToList();
         
         candidate = candidates[0];
         Debug.Assert(map.BoundsCheck(candidate.Pos));
         candidates.RemoveAt(0);
-        var visit = (candidate.Facing, candidate.Pos);
-        if (visited.Contains(visit))
-            continue;
-        visited.Add(visit);
         
-        if(candidate.Pos == endPos)
-            break;
-        if (!candidate.justTurned || candidate.Pos == startPos)
+        var visit = candidate.ToVisited();
+        if (visited.TryGetValue(visit, out var tileVisits))
         {
-            var turned = candidate;
-            turned.cost += 1000;
-            turned.justTurned = true;
-            turned.Facing = (Directions)(((int)turned.Facing + 1) % 4);
-            if (!visited.Contains((turned.Facing, turned.Pos)))
+            var cost = tileVisits.Min(se => se.Cost);
+            if(cost < candidate.Cost)
+                continue;
+            if (cost > candidate.Cost)
+                visited[visit] = [candidate];
+            else
             {
-                turned.hint = Hint(turned);
-                candidates.Add(turned);
-            }
-            turned.Facing = (Directions)(((int)turned.Facing + 2) % 4);
-            if (!visited.Contains((turned.Facing, turned.Pos)))
-            {
-                turned.hint = Hint(turned);
-                candidates.Add(turned);
+                visited[visit].Add(candidate);
+                continue;
             }
         }
+        else
+            visited[visit]=[candidate];
 
-        var forward = candidate;
-        forward.cost++;
-        forward.Pos = Add(forward.Pos, offsets[forward.Facing]);
-        forward.justTurned = false;
-        forward.hint = Hint(forward);
+        if (candidate.Pos == endPos && candidate.Previous?.Pos != endPos)
+        {
+            solutions.Add(candidate);
+            solutionCost = Math.Min(candidate.Cost, solutionCost);
+        }
+        
+        if (!candidate.JustTurned || candidate.Pos == startPos)
+        {
+            var left = candidate.LeftSuccessor();
+            if (!visited.TryGetValue(left.ToVisited(), out var ll) 
+                || ll.All(se => se.Cost >= left.Cost))
+                candidates.Add(left);
+            var right = candidate.RightSuccessor();
+            if (!visited.TryGetValue(right.ToVisited(), out var lr) 
+                || lr.All(se => se.Cost >= right.Cost)) 
+                candidates.Add(right);
+        }
+
+        var forward = candidate.FwdSuccessor();
         if(map.Index(forward.Pos) != '#')
             candidates.Add(forward);
         Debug.Assert(candidates.Count < 100 * map.Width * map.Height);
     }
 
-
-    return candidate.cost;
+    var tilesToExpand = solutions.SelectMany(sln => sln.GetFullPath()).Distinct().ToList();
+    List<(int X, int Y)> allPathTiles = [];
+    while (tilesToExpand.Count > 0)
+    {
+        var visit = tilesToExpand[0];
+        tilesToExpand.RemoveAt(0);
+        allPathTiles.Add(visit.Pos);
+        if (visited[visit].Count > 1)
+        {
+            var path = visited[visit].Select(se=>se.Previous).SelectMany(se => se.GetFullPath());
+            tilesToExpand.AddRange(path.Except(tilesToExpand));
+        }
+    }
+    
+    pathTileCount = allPathTiles.Distinct().Count();
+    foreach (var tile in allPathTiles) map.Index(tile, 'O');
+    Debug.Print(map.Print());
+    return solutionCost;
 }
 
 string testInput = "###############\n#.......#....E#\n#.#.###.#.###.#\n#.....#.#...#.#\n#.###.#####.#.#\n#.#.#.......#.#\n#.#.#####.###.#\n#...........#.#\n###.#.#####.#.#\n#...#.....#.#.#\n#.#.#.###.#.#.#\n#.....#...#.#.#\n#.###.#.#.#.#.#\n#S..#.....#...#\n###############";
 string testInput2 =
     "#################\n#...#...#...#..E#\n#.#.#.#.#.#.#.#.#\n#.#.#.#...#...#.#\n#.#.#.#.###.#.#.#\n#...#.#.#.....#.#\n#.#.#.#.#.#####.#\n#.#...#.#.#.....#\n#.#.#####.#.###.#\n#.#.#.......#...#\n#.#.###.#####.###\n#.#.#...#.....#.#\n#.#.#.#####.###.#\n#.#.#.........#.#\n#.#.#.#########.#\n#S#.............#\n#################";
 
-Debug.Assert(7036 == Calculate(testInput));
-Debug.Assert(11048 == Calculate(testInput2));
+var pathTileCount = 0;
+Debug.Assert(7036 == Calculate(testInput, out pathTileCount));
+Debug.Assert(pathTileCount == 45);
+Debug.Assert(11048 == Calculate(testInput2, out pathTileCount));
+Debug.Assert(pathTileCount == 64);
 
-Console.WriteLine($"Best path has cost {Calculate(PuzzleInput.Input)}");
+Console.WriteLine($"Best paths have cost {Calculate(PuzzleInput.Input, out pathTileCount)} and cover {pathTileCount} distinct tiles.");
 
 Console.WriteLine($"Done!");
-
-enum Directions
-{
-    East=0,
-    North=1,
-    West=2,
-    South=3
-}
