@@ -41,6 +41,20 @@ public class CharGrid
 
         return sb.ToString();
     }
+
+    public (int X, int Y) FindFirst(char c)
+    {
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                if (c == Grid[j][i])
+                    return (i, j);
+            }
+        }
+
+        throw new InvalidOperationException($"Character {c} was not present in the grid:\n{Print()}");
+    }
 }
 
 public class IntGrid
