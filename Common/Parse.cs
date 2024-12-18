@@ -1,80 +1,8 @@
 ﻿using System.Globalization;
 using System.Numerics;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Common;
-
-
-public class CharGrid
-{
-    public static char[][] ParseToGrid(string input)=>input.Split('\n').Select(s=>s.ToCharArray()).ToArray();
-    public char[][] Grid { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public bool BoundsCheck((int X, int Y) coord) => coord is { X: >= 0, Y: >= 0} && coord.X < Width && coord.Y < Height;
-    
-    public CharGrid(string input)
-    {
-        Grid = ParseToGrid(input);
-        Width = input.IndexOf('\n');
-        Height = input.Count(c => c == '\n') + 1;
-    }
-
-    public char Index((int X, int Y) index) => Grid[index.Y][index.X];
-    /// <summary>
-    /// Returns a single line/row of the grid.  Note that this means the indexes are reversed, (line,column) or (Y,X)
-    /// </summary>
-    /// <param name="row"></param>
-    public char[] this[int row] => Grid[row];
-
-    public void Index((int X, int Y) index, char toSet) => Grid[index.Y][index.X] = toSet;
-
-    public string Print()
-    {
-        var sb = new StringBuilder();
-        foreach (var row in Grid)
-        {
-            foreach (var c in row) sb.Append(c);
-            sb.AppendLine();
-        }
-
-        return sb.ToString();
-    }
-
-    public (int X, int Y) FindFirst(char c)
-    {
-        for (int i = 0; i < Width; i++)
-        {
-            for (int j = 0; j < Height; j++)
-            {
-                if (c == Grid[j][i])
-                    return (i, j);
-            }
-        }
-
-        throw new InvalidOperationException($"Character {c} was not present in the grid:\n{Print()}");
-    }
-}
-
-public class IntGrid
-{
-    public int[][] Grid { get; }
-    public int Width { get; }
-    public int Height { get; }
-    public bool BoundsCheck((int X, int Y) coord) => coord is { X: >= 0, Y: >= 0} && coord.X < Width && coord.Y < Height;
-    
-    public IntGrid(string input)
-    {
-        var charGrid = new CharGrid(input);
-        Width = charGrid.Width;
-        Height = charGrid.Height;
-        Grid = charGrid.Grid.Select(row => row.Select(c => int.Parse(c.ToString())).ToArray()).ToArray();
-    }
-
-    public int Index((int X, int Y) index) => Grid[index.X][index.Y];
-    public int[] this[int x] => Grid[x];
-}
 
 public class NumArgsByLine<T> where T : INumber<T>,IParsable<T>
 {
