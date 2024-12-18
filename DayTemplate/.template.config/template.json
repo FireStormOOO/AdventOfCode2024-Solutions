@@ -1,0 +1,12 @@
+{
+  "author": "FireStormOOO",
+  "name": "Advent of Code Daily Puzzle Project",
+  "description": "A project for solving small programming puzzles, with test cases.",
+  "identity": "space.firestorm.lib.adventofcode2024.dailytemplate.v1",
+  "shortName": "AoC2024_DailyTemplate_v1",
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
+  "sourceName": "DayN"
+}
