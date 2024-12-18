@@ -8,18 +8,12 @@ public static class PuzzleInput
 //B = A & 7     B => 2 //my choice
 //B ^= 1        B => 3 //clean seperation of B and C
 //C = A >> B    C => next 3 bits
-//A >>= B       shift 3 more bits
-//B ^= C        3^2=C, C=1
-//Out B & 7         2
-//A >>= 3       6 bits total
+//B ^= 5
+//B ^= C
+//Out B & 7 
+//A >>= 3
 //jnz 0
 
-//B always 2
-//C always output XOR 3
-//both 3 bit, shift in 3 bits at a time
 
-//each counter
-//A |= 2
-//A << 3
-//A |= program[counter] ^ 3
-//A << 3
+// out = B ^ 1 ^ 5 ^ C = B ^ 4 ^ C
+// c shift = B ^ 1
